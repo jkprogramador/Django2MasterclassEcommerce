@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecom</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a href="{% url 'index' %}" class="navbar-brand">Ecom</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <button id="cart" data-html="true" type="button" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="Content here">
+            Cart(0)
+          </button>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  {% if messages %}
+    {%for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="container mt-4">
+
+    {% block body%}
+    {% endblock %}
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+  <script>
+    $(function() {
+      var cart;
+
+      if (localStorage.getItem('cart') == null) {
+        cart = {};
+      } else {
+        cart = JSON.parse(localStorage.getItem('cart'));
+      }
+
+      $(document).on('click', '.atc', function(event) {
+        event.preventDefault();
+        
+        var product_id = this.id.toString();
+        
+        if ('undefined' !== typeof(cart[product_id])) {
+          var quantity = cart[product_id][0] + 1;
+          cart[product_id][0] = quantity;
+          cart[product_id][2] += parseFloat($('#product_price_' + product_id).text().trim().substr(1));
+        } else {
+          var quantity = 1
+          var name = $('#product_name_' + product_id).text();
+          var price = parseFloat($('#product_price_' + product_id).text().trim().substr(1));
+          cart[product_id] = [quantity, name, price];
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+
+        update_cart_counter(cart);
+
+        display_cart(cart);
+      });
+
+      $('[data-toggle="popover"]').popover();
+
+      update_cart_counter(cart);
+      display_cart(cart);
+    });
+
+    function update_cart_counter(cart) {
+      $('#cart').text('Cart('+ Object.keys(cart).length + ')');
+    }
+
+    function display_cart(cart) {
+      var contents = '';
+      var cart_index = 1;
+
+      for (var item in cart) {
+        contents += cart_index;
+        contents += ') ' + cart[item][1] + ' Qty:' + cart[item][0] + '<br>';
+        cart_index++;
+      }
+
+      contents += '<a href="/checkout" id="checkout" class="btn btn-warning">Checkout</a>';
+
+      $('#cart').attr('data-content', contents);
+    }
+  </script>
+</body>
+</html>
